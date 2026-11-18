@@ -1,6 +1,5 @@
 import logging
 import os
-from threading import Thread
 from flask import Flask
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, ContextTypes
@@ -8,18 +7,13 @@ from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandle
 # লগিং সেটআপ
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# Render Web Service সচল রাখার জন্য ছোট একটি Flask সার্ভার
+# Render Web Service সার্ভার সচল রাখার জন্য Flask অ্যাপ
 app = Flask(__name__)
 
 
 @app.route("/")
 def home():
   return "Bot is alive and running!"
-
-
-def run_web():
-  port = int(os.environ.get("PORT", 8080))
-  app.run(host="0.0.0.0", port=port)
 
 
 # /start কমান্ড হ্যান্ডলার
@@ -77,18 +71,18 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-  # আপনার আসল বট টোকেন নিচের কোটেশনের ভেতর বসান:
   TOKEN = "YOUR_BOT_TOKEN_HERE"
-
-  # ব্যাকগ্রাউন্ডে ওয়েব সার্ভার চালু করা
-  Thread(target=run_web, daemon=True).start()
 
   application = ApplicationBuilder().token(TOKEN).build()
   application.add_handler(CommandHandler("start", start))
   application.add_handler(CallbackQueryHandler(button_handler))
 
   print("বট সফলভাবে রান হচ্ছে...")
-  application.run_polling()
+
+  # Render এর জন্য পোলিং এবং ফ্লাস্ক একসাথে স্টার্ট করা
+  port = int(os.environ.get("PORT", 10000))
+  # সরাসরি ফ্লাস্ক অ্যাপ রান করা (এটি রেন্ডারের পোর্ট রিকোয়ারমেন্ট পূরণ করবে)
+  app.run(host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":
