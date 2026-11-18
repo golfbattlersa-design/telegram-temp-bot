@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandle
 # লগিং সেটআপ
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# Render Web Service সার্ভার সচল রাখার জন্য Flask অ্যাপ
+# Render Web Service সচল রাখার জন্য ফ্লাস্ক সার্ভার
 app = Flask(__name__)
 
 
@@ -63,7 +63,7 @@ async def mail_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await query.message.edit_text(text, reply_markup=reply_markup, parse_mode="Markdown")
 
 
-# নাম্বার মেনু হ্যান্ডলার (বহুদেশ ও রিজন যুক্ত করা হয়েছে)
+# নাম্বার মেনু হ্যান্ডলার
 async def number_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
   query = update.callback_query
   await query.answer()
@@ -74,11 +74,11 @@ async def number_menu_handler(update: Update, context: ContextTypes.DEFAULT_TYPE
     [InlineKeyboardButton("🇩🇪 Germany (+49)", callback_data="num_de"), InlineKeyboardButton("🇫🇷 France (+33)", callback_data="num_fr")],
     [InlineKeyboardButton("🔙 হোমে ফিরে যান", callback_data="back_home")],
   ]
-  reply_markup = InlineKeyboardMarkup(reply_markup := InlineKeyboardMarkup(keyboard))
+  reply_markup = InlineKeyboardMarkup(keyboard)
 
   text = (
       "📱 **Global Virtual Numbers & OTP Hub:**\n\n"
-      "ওটিপি ভেরিফিকেশনের জন্য নিচের দেশগুলো থেকে আপনার পছন্দমতো একটি দেশ সিলেক্ট করুন। প্রতিটি দেশের অধীনে একাধিকভাচুয়াল নাম্বার ও লাইভ ইনবক্স মেসেজ পাবেন:"
+      "ওটিপি ভেরিফিকেশনের জন্য নিচের দেশগুলো থেকে আপনার পছন্দমতো একটি দেশ সিলেক্ট করুন:"
   )
   await query.message.edit_text(text, reply_markup=reply_markup, parse_mode="Markdown")
 
@@ -102,41 +102,30 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = (
         "📧 **আপনার নতুন ইনস্ট্যান্ট মেইল:**\n"
         "`bot_user992@tempmail.com`\n\n"
-        "*(এই মেইলটি কপি করে যেকোনো সাইটে ব্যবহার করুন। ওটিপি বা ইনবক্সের মেসেজ এখানেই অটো রিসিভ হবে)*"
+        "*(এই মেইলটি কপি করে যেকোনো সাইটে ব্যবহার করুন)*"
     )
     await query.message.edit_text(text, reply_markup=reply_markup, parse_mode="Markdown")
 
   elif query.data == "get_custom_mail":
     text = (
         "⚙️ **কাস্টম মেইল তৈরি:**\n\n"
-        "আপনার পছন্দের যেকোনো ৬-১০ অক্ষরের নাম লিখে পাঠান (যেমন: `myname123`)। বট সাথে সাথেই আপনার নামে কাস্টম মেইল জেনারেট করে দেবে!"
+        "আপনার পছন্দের যেকোনো ৬-১০ অক্ষরের নাম লিখে পাঠান (যেমন: `myname123`)*"
     )
     await query.message.edit_text(text, reply_markup=reply_markup, parse_mode="Markdown")
 
   elif query.data in ["num_us", "num_kr", "num_uk", "num_ca", "num_de", "num_fr"]:
-    country_names = {
-        "num_us": "🇺🇸 United States (+1)",
-        "num_kr": "🇰🇷 South Korea (+82)",
-        "num_uk": "🇬🇧 United Kingdom (+44)",
-        "num_ca": "🇨🇦 Canada (+1)",
-        "num_de": "🇩🇪 Germany (+49)",
-        "num_fr": "🇫🇷 France (+33)",
-    }
-    selected_country = country_names.get(query.data, "Selected Country")
     text = (
-        f"📱 **Virtual Number - {selected_country}**\n\n"
-        f"নম্বর: `+1 (555) 382-9102`\n\n"
-        f"✅ Google, Telegram, Instagram, WhatsApp এবং অন্যান্য সার্ভিসের ওটিপি লাইভ চেক করা হচ্ছে...\n"
-        f"*(নতুন ওটিপি আসলে নিচে ইনস্ট্যান্ট শো করবে)*"
+        "📱 **Virtual Number Hub**\n\n"
+        "নম্বর: `+1 (555) 382-9102`\n\n"
+        "✅ Google, Telegram, Instagram এবং অন্যান্য সার্ভিসের ওটিপি লাইভ চেক করা হচ্ছে..."
     )
     await query.message.edit_text(text, reply_markup=reply_markup, parse_mode="Markdown")
 
   elif query.data == "help_info":
     text = (
         "ℹ️ **বট ব্যবহারের নির্দেশিকা:**\n\n"
-        "1. **Temp Mail:** যেকোনো ওয়েবসাইটে সাইন-আপ করার সময় আসল ইমেইল লুকিয়ে রাখতে এই মেইল ব্যবহার করুন।\n"
-        "2. **Temp Numbers:** অ্যাকাউন্ট ভেরিফিকেশনের সময় ফ্রি ভার্চুয়াল নাম্বার থেকে কোড বা ওটিপি দেখে নিন।\n"
-        "3. কোনো সমস্যা হলে বট পুনরায় চালু করতে `/start` কমান্ড দিন।"
+        "1. **Temp Mail:** আসল ইমেইল লুকিয়ে রাখতে এই মেইল ব্যবহার করুন।\n"
+        "2. **Temp Numbers:** অ্যাকাউন্ট ভেরিফিকেশনের সময় ফ্রি ভার্চুয়াল নাম্বার থেকে ওটিপি দেখে নিন।"
     )
     await query.message.edit_text(text, reply_markup=reply_markup, parse_mode="Markdown")
 
@@ -146,15 +135,14 @@ def main():
   TOKEN = "9035144010:AAElyjhT1sZsZnSNkKqFIDldj_3VVElCVlQ"
 
   application = ApplicationBuilder().token(TOKEN).build()
-
   application.add_handler(CommandHandler("start", start))
   application.add_handler(CallbackQueryHandler(button_handler))
 
-  print("বট সফলভাবে রান হচ্ছে...")
-
-  port = int(os.environ.get("PORT", 10000))
-  app.run(host="0.0.0.0", port=port)
+  # টেলিগ্রাম বটকে ব্যাকগ্রাউন্ডে পোলিং মোডে স্টার্ট করা
+  application.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
-  main()
+  # Render-এর জন্য ফ্লাস্ক সার্ভার পোর্টের ব্যবস্থা
+  port = int(os.environ.get("PORT", 10000))
+  app.run(host="0.0.0.0", port=port)
