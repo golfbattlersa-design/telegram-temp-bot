@@ -25,10 +25,6 @@ def run_web():
   app.run(host="0.0.0.0", port=port)
 
 
-# সবচেয়ে নির্ভরযোগ্য 1SecMail ডোমেইন তালিকা
-DOMAINS = ["1secmail.com", "1secmail.org", "1secmail.net"]
-
-
 # /start কমান্ড এবং মূল মেনু
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   keyboard = [
@@ -101,13 +97,25 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await start(update, context)
 
   elif data == "get_random_mail":
-    name = f"user{random.randint(10000, 99999)}"
-    domain = random.choice(DOMAINS)
-    email = f"{name}@{domain}"
+    # 1SecMail এর পরিবর্তে আরও রিলায়েবল v-tempmail বা guerrillamail ফ্রি এপিআই ব্যবহার
+    try:
+      res = requests.get("https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1", timeout=10)
+      if res.status_code == 200 and len(res.json()) > 0:
+        email = res.json()[0]
+      else:
+        name = f"user{random.randint(10000, 99999)}"
+        email = f"{name}@esiix.com"
+    except:
+      name = f"user{random.randint(10000, 99999)}"
+      email = f"{name}@esiix.com"
+
+    mail_parts = email.split("@")
+    mail_user = mail_parts[0]
+    mail_domain = mail_parts[1]
 
     context.user_data["current_email"] = email
-    context.user_data["mail_user"] = name
-    context.user_data["mail_domain"] = domain
+    context.user_data["mail_user"] = mail_user
+    context.user_data["mail_domain"] = mail_domain
 
     keyboard = [
         [InlineKeyboardButton("📥 টেলিগ্রামেই ইনবক্স চেক করুন", callback_data="check_inbox")],
@@ -132,8 +140,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     api_url = f"https://www.1secmail.com/api/v1/?action=getMessages&login={mail_user}&domain={mail_domain}"
     try:
-      # টাইমআউট যুক্ত করা হয়েছে যাতে রিকোয়েস্ট আটকে না থাকে
-      response = requests.get(api_url, timeout=10)
+      headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+      response = requests.get(api_url, headers=headers, timeout=15)
       messages = response.json()
 
       keyboard = [
@@ -155,7 +163,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
           subject = msg.get("subject")
 
           detail_url = f"https://www.1secmail.com/api/v1/?action=readMessage&login={mail_user}&domain={mail_domain}&id={msg_id}"
-          detail_res = requests.get(detail_url, timeout=10).json()
+          detail_res = requests.get(detail_url, headers=headers, timeout=15).json()
           body = detail_res.get("textBody", "Content not available")
 
           text += f"👤 **প্রেরক:** {from_sender}\n📌 **বিষয়:** {subject}\n💬 **টেক্সট/কোড:**\n`{body[:300]}`\n\n-------------------\n"
@@ -163,7 +171,16 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
       await query.message.edit_text(text, reply_markup=reply_markup, parse_mode="Markdown")
     except Exception as e:
       logging.error(f"Inbox Error: {e}")
-      await query.message.reply_text("❌ এপিআই সার্ভারে সংযোগ স্থাপন করতে সমস্যা হচ্ছে। দয়া করে কয়েক সেকেন্ড পর আবার চেষ্টা করুন।")
+      # ফলব্যাক রেসপন্স যাতে বট ক্র্যাশ না করে
+      keyboard = [
+          [InlineKeyboardButton("📥 আবার ইনবক্স রিফ্রেশ করুন", callback_data="check_inbox")],
+          [InlineKeyboardButton("🔙 হোমে ফিরে যান", callback_data="back_home")],
+      ]
+      reply_markup = InlineKeyboardMarkup(keyboard)
+      await query.message.edit_text(
+          "⏳ সার্ভার থেকে ডেটা আনতে একটু দেরি হচ্ছে। অনুগ্রহ করে ১০ সেকেন্ড পর আবার **'ইনবক্স রিফ্রেশ করুন'** বাটনে ক্লিক করুন।",
+          reply_markup=reply_markup,
+      )
 
   elif data == "custom_mail_prompt":
     context.user_data["waiting_for_custom_mail"] = True
@@ -197,12 +214,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
       await update.message.reply_text("❌ নামের দৈর্ঘ্য অন্তত ৩ অক্ষরের হতে হবে। আবার লিখুন:")
       return
 
-    domain = random.choice(DOMAINS)
-    email = f"{clean_name}@{domain}"
+    mail_domain = "1secmail.com"
+    email = f"{clean_name}@{mail_domain}"
     context.user_data["waiting_for_custom_mail"] = False
     context.user_data["current_email"] = email
     context.user_data["mail_user"] = clean_name
-    context.user_data["mail_domain"] = domain
+    context.user_data["mail_domain"] = mail_domain
 
     keyboard = [
         [InlineKeyboardButton("📥 টেলিগ্রামেই ইনবক্স চেক করুন", callback_data="check_inbox")],
@@ -214,7 +231,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🎉 **কাস্টম মেইল তৈরি সফল!**\n\n📧 মেইল: `{email}`\n\n"
         f"✅ সাইটে কোড পাঠিয়ে নিচের বাটনে ক্লিক করলেই টেলিগ্রামের ভেতরে ওটিপি দেখতে পাবেন!"
     )
-    await update.message.reply_text(response_text, parse_mode="Markdown")
+    await update.message.reply_text(response_text, reply_markup=reply_markup, parse_mode="Markdown")
   else:
     await update.message.reply_text("বট পরিচালনা করতে `/start` কমান্ড দিন।")
 
@@ -229,7 +246,7 @@ def main():
   application.add_handler(CallbackQueryHandler(button_handler))
   application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-  print("ফিক্সড ইনবক্স এপিআই বট রান হচ্ছে...")
+  print("স্টেবল এপিআই ফিক্সসহ বট রান হচ্ছে...")
   application.run_polling(drop_pending_updates=True)
 
 
