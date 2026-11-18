@@ -1,5 +1,6 @@
 import logging
 import os
+from threading import Thread
 from flask import Flask
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler, ContextTypes
@@ -7,13 +8,18 @@ from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandle
 # লগিং সেটআপ
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# Render Web Service সচল রাখার জন্য ফ্লাস্ক সার্ভার
+# ১. Render Web Service সচল রাখার জন্য ফ্লাস্ক সার্ভার
 app = Flask(__name__)
 
 
 @app.route("/")
 def home():
   return "Bot is alive and running!"
+
+
+def run_web():
+  port = int(os.environ.get("PORT", 10000))
+  app.run(host="0.0.0.0", port=port)
 
 
 # /start কমান্ড এবং মূল মেনু
@@ -123,7 +129,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
   elif query.data == "help_info":
     text = (
-        "ℹ️ **বট ব্যবহারের নির্দেশিকা:**\n\n"
+        "ℹ️ **বটের নির্দেশিকা:**\n\n"
         "1. **Temp Mail:** আসল ইমেইল লুকিয়ে রাখতে এই মেইল ব্যবহার করুন।\n"
         "2. **Temp Numbers:** অ্যাকাউন্ট ভেরিফিকেশনের সময় ফ্রি ভার্চুয়াল নাম্বার থেকে ওটিপি দেখে নিন।"
     )
@@ -134,15 +140,17 @@ def main():
   # 👇 এখানে আপনার আসল টেলিগ্রাম বট টোকেনটি বসিয়ে দেবেন 👇
   TOKEN = "9035144010:AAElyjhT1sZsZnSNkKqFIDldj_3VVElCVlQ"
 
+  # ২. ব্যাকগ্রাউন্ডে ফ্লাস্ক সার্ভার থ্রেড চালু করা (যাতে রেন্ডার পোর্ট ওপেন পায়)
+  Thread(target=run_web, daemon=True).start()
+
+  # ৩. টেলিগ্রাম বট স্টার্ট করা
   application = ApplicationBuilder().token(TOKEN).build()
   application.add_handler(CommandHandler("start", start))
   application.add_handler(CallbackQueryHandler(button_handler))
 
-  # টেলিগ্রাম বটকে ব্যাকগ্রাউন্ডে পোলিং মোডে স্টার্ট করা
+  print("বট সফলভাবে পোলিং মোডে রান হচ্ছে...")
   application.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
-  # Render-এর জন্য ফ্লাস্ক সার্ভার পোর্টের ব্যবস্থা
-  port = int(os.environ.get("PORT", 10000))
-  app.run(host="0.0.0.0", port=port)
+  main()
