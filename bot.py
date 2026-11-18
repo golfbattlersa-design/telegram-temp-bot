@@ -25,8 +25,8 @@ def run_web():
   app.run(host="0.0.0.0", port=port)
 
 
-# ফ্রি এবং রিয়েল 1SecMail ডোমেইন তালিকা
-DOMAINS = ["1secmail.com", "1secmail.org", "1secmail.net", "wwjmp.com", "esiix.com"]
+# সবচেয়ে নির্ভরযোগ্য 1SecMail ডোমেইন তালিকা
+DOMAINS = ["1secmail.com", "1secmail.org", "1secmail.net"]
 
 
 # /start কমান্ড এবং মূল মেনু
@@ -40,7 +40,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
   welcome_text = (
       "🔥 **Welcome to the Ultimate Temp Mail & OTP Bot!** 🚀\n\n"
-      "পাসওয়ার্ড বা প্রাইভেসি নিয়ে চিন্তা? এখন থেকে যেকোনো সাইটে রিয়েল টেম্প মেইল ব্যবহার করুন এবং **সরাসরি টেলিগ্রামের ভেতরেই** ইনবক্স ও ওটিপি কোড দেখে নিন! ⚡\n\n"
+      "পাসওয়ার্ড বা প্রাইভেসি নিয়ে চিন্তা? যেকোনো সাইটে রিয়েল টেম্প মেইল ব্যবহার করুন এবং **সরাসরি টেলিগ্রামের ভেতরেই** ইনবক্স ও ওটিপি কোড দেখে নিন! ⚡\n\n"
       "👇 নিচ থেকে আপনার প্রয়োজনীয় অপশনটি সিলেক্ট করুন:"
   )
 
@@ -105,7 +105,6 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     domain = random.choice(DOMAINS)
     email = f"{name}@{domain}"
 
-    # ইউজার ডাডায় ইমেইল ও ডোমেইন সেভ করে রাখা যাতে ইনবক্স চেক করা যায়
     context.user_data["current_email"] = email
     context.user_data["mail_user"] = name
     context.user_data["mail_domain"] = domain
@@ -131,10 +130,10 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
       await query.message.reply_text("⚠️ প্রথমে একটি মেইল তৈরি করুন!")
       return
 
-    # API থেকে লাইভ ইনবক্স ফেচ করা
     api_url = f"https://www.1secmail.com/api/v1/?action=getMessages&login={mail_user}&domain={mail_domain}"
     try:
-      response = requests.get(api_url)
+      # টাইমআউট যুক্ত করা হয়েছে যাতে রিকোয়েস্ট আটকে না থাকে
+      response = requests.get(api_url, timeout=10)
       messages = response.json()
 
       keyboard = [
@@ -150,21 +149,21 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
       else:
         text = f"📬 **আপনার ইনবক্সে {len(messages)} টি নতুন মেসেজ এসেছে!**\n\n"
-        for msg in messages[:3]:  # শেষ ৩টি মেসেজ দেখানো
+        for msg in messages[:3]:
           msg_id = msg.get("id")
           from_sender = msg.get("from")
           subject = msg.get("subject")
 
-          # নির্দিষ্ট মেসেজের বিস্তারিত আনা
           detail_url = f"https://www.1secmail.com/api/v1/?action=readMessage&login={mail_user}&domain={mail_domain}&id={msg_id}"
-          detail_res = requests.get(detail_url).json()
+          detail_res = requests.get(detail_url, timeout=10).json()
           body = detail_res.get("textBody", "Content not available")
 
           text += f"👤 **প্রেরক:** {from_sender}\n📌 **বিষয়:** {subject}\n💬 **টেক্সট/কোড:**\n`{body[:300]}`\n\n-------------------\n"
 
       await query.message.edit_text(text, reply_markup=reply_markup, parse_mode="Markdown")
     except Exception as e:
-      await query.message.reply_text("❌ ইনবক্স লোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।")
+      logging.error(f"Inbox Error: {e}")
+      await query.message.reply_text("❌ এপিআই সার্ভারে সংযোগ স্থাপন করতে সমস্যা হচ্ছে। দয়া করে কয়েক সেকেন্ড পর আবার চেষ্টা করুন।")
 
   elif data == "custom_mail_prompt":
     context.user_data["waiting_for_custom_mail"] = True
@@ -215,7 +214,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🎉 **কাস্টম মেইল তৈরি সফল!**\n\n📧 মেইল: `{email}`\n\n"
         f"✅ সাইটে কোড পাঠিয়ে নিচের বাটনে ক্লিক করলেই টেলিগ্রামের ভেতরে ওটিপি দেখতে পাবেন!"
     )
-    await update.message.reply_text(response_text, reply_markup=reply_markup, parse_mode="Markdown")
+    await update.message.reply_text(response_text, parse_mode="Markdown")
   else:
     await update.message.reply_text("বট পরিচালনা করতে `/start` কমান্ড দিন।")
 
@@ -230,7 +229,7 @@ def main():
   application.add_handler(CallbackQueryHandler(button_handler))
   application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-  print("সরাসরি ইনবক্স দেখার ফিচারসহ বট রান হচ্ছে...")
+  print("ফিক্সড ইনবক্স এপিআই বট রান হচ্ছে...")
   application.run_polling(drop_pending_updates=True)
 
 
