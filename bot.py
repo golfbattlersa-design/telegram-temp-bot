@@ -1,3 +1,13 @@
+welcome_text = (
+      "🔥 **Welcome to the Fastest Temp Mail & OTP Bot!** 🚀\n\n"
+      "পাসওয়ার্ড বা প্রাইভেসি নিয়ে চিন্তা? এখন থেকে যেকোনো সাইটে আনলিমিটেড টেম্প মেইল ও ফ্রি ওটিপি নাম্বার ব্যবহার করুন এক ক্লিকেই! ⚡\n\n"
+      "📌 **আমাদের স্পেশাল ফিচারসমূহ:**\n"
+      "• 📧 Instant Temp Mail (অটো ইনবক্স রিফ্রেশ)\n"
+      "• 📱 Free Virtual Numbers (OTP রিসিভ করার জন্য)\n"
+      "• ⚙️ Custom Username Mail Generator\n\n"
+      "👇 নিচ থেকে আপনার প্রয়োজনীয় অপশনটি সিলেক্ট করুন:"
+  )
+
 import logging
 import os
 from threading import Thread
