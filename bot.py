@@ -1,13 +1,3 @@
-welcome_text = (
-      "🔥 **Welcome to the Fastest Temp Mail & OTP Bot!** 🚀\n\n"
-      "পাসওয়ার্ড বা প্রাইভেসি নিয়ে চিন্তা? এখন থেকে যেকোনো সাইটে আনলিমিটেড টেম্প মেইল ও ফ্রি ওটিপি নাম্বার ব্যবহার করুন এক ক্লিকেই! ⚡\n\n"
-      "📌 **আমাদের স্পেশাল ফিচারসমূহ:**\n"
-      "• 📧 Instant Temp Mail (অটো ইনবক্স রিফ্রেশ)\n"
-      "• 📱 Free Virtual Numbers (OTP রিসিভ করার জন্য)\n"
-      "• ⚙️ Custom Username Mail Generator\n\n"
-      "👇 নিচ থেকে আপনার প্রয়োজনীয় অপশনটি সিলেক্ট করুন:"
-  )
-
 import logging
 import os
 from threading import Thread
@@ -42,7 +32,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
   reply_markup = InlineKeyboardMarkup(keyboard)
 
   welcome_text = (
-      "🤖 **Temp Mail & Temp Number Bot**\n\nস্বাগতম! নিচের অপশন থেকে আপনার প্রয়োজন অনুযায়ী সিলেক্ট করুন:"
+      "🔥 **Welcome to the Fastest Temp Mail & OTP Bot!** 🚀\n\n"
+      "পাসওয়ার্ড বা প্রাইভেসি নিয়ে চিন্তা? এখন থেকে যেকোনো সাইটে আনলিমিটেড টেম্প মেইল ও ফ্রি ওটিপি নাম্বার ব্যবহার করুন এক ক্লিকেই! ⚡\n\n"
+      "📌 **আমাদের স্পেশাল ফিচারসমূহ:**\n"
+      "• 📧 Instant Temp Mail (অটো ইনবক্স রিফ্রেশ)\n"
+      "• 📱 Free Virtual Numbers (OTP রিসিভ করার জন্য)\n"
+      "• ⚙️ Custom Username Mail Generator\n\n"
+      "👇 নিচ থেকে আপনার প্রয়োজনীয় অপশনটি সিলেক্ট করুন:"
   )
 
   if update.message:
@@ -82,7 +78,7 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
   # আপনার আসল বট টোকেন নিচের কোটেশনের ভেতর বসান:
-  TOKEN = "9035144010:AAElyjhT1sZsZnSNkKqFIDldj_3VVElCVlQ"
+  TOKEN = "YOUR_BOT_TOKEN_HERE"
 
   # ব্যাকগ্রাউন্ডে ওয়েব সার্ভার চালু করা
   Thread(target=run_web, daemon=True).start()
